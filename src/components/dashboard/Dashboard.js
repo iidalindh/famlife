@@ -32,6 +32,7 @@ export const Dashboard = () => {
             </div>
           </Link>
           {calendars.map((calendarFromDoc) => {
+            let id = calendarFromDoc.id;
             return (
               <Link
                 to={`/calendar/` + calendarFromDoc.id}

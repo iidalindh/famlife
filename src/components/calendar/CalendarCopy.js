@@ -4,9 +4,17 @@ import {
   DayPilotCalendar,
   DayPilotNavigator,
 } from "daypilot-pro-react";
+import firebase from "firebase/compat/app";
 import { auth, db } from "../../firebase-config";
 import { Navbar } from "../navbar/Navbar";
-import { collection, getDocs } from "@firebase/firestore";
+import {
+  collection,
+  getDocs,
+  doc,
+  setDoc,
+  arrayUnion,
+} from "@firebase/firestore";
+import { updateDoc } from "firebase/firestore";
 
 const styles = {
   wrap: {
@@ -33,26 +41,49 @@ export const CalendarCopy = () => {
     durationBarVisible: false,
     timeRangeSelectedHandling: "Enabled",
     onTimeRangeSelected: function(args) {
-      DayPilot.Modal.prompt("Create a new event:", "Event 1").then(function(
-        modal
-      ) {
-        let dp = args.control;
+      DayPilot.Modal.prompt("Create a new event:", "Event 1").then(
+        async function(modal) {
+          let dp = args.control;
 
-        dp.clearSelection();
-        if (!modal.result) {
-          return;
+          dp.clearSelection();
+          if (!modal.result) {
+            return;
+          }
+          dp.events.add(
+            new DayPilot.Event({
+              start: args.start,
+              end: args.end,
+              id: DayPilot.guid(),
+              text: modal.result,
+            })
+          );
+          setEvents(dp.events.list);
+          // const myDoc = doc(
+          //   db,
+          //   "users",
+          //   auth.currentUser.uid,
+          //   "calendars",
+          //   calendarId
+          // );
+
+          // await updateDoc(myDoc, {
+          //   events: [events.events],
+          // }).then(function() {
+          //   console.log("Frank created");
+          // });
+
+          //   collection(db, "users", auth.currentUser.uid, "calendars")
+          //     .doc(calendarId)
+          //     .update({
+          //       events: {
+          //         food: "HEJ",
+          //       },
+          //     })
+          //     .then(function() {
+          //       console.log("Frank food updated");
+          //     });
         }
-        dp.events.add(
-          new DayPilot.Event({
-            start: args.start,
-            end: args.end,
-            id: DayPilot.guid(),
-            text: modal.result,
-          })
-        );
-        setEvents(dp.events.list);
-        console.log(events);
-      });
+      );
     },
 
     eventDeleteHandling: "Update",
@@ -72,7 +103,7 @@ export const CalendarCopy = () => {
     },
   });
 
-  useEffect(async () => {
+  useEffect(() => {
     if (auth.currentUser) {
       let uid = auth.currentUser.uid;
       let list = [];
@@ -82,8 +113,9 @@ export const CalendarCopy = () => {
         const querySnapshot = await getDocs(usersCollectionRef);
         querySnapshot.forEach((doc) => {
           if (doc.id === calendarId) {
+            console.log(doc.data());
             doc.data().events.forEach((event) => {
-              const myTitle = event.title;
+              const myTitle = event.text;
               const myStart = new DayPilot.Date(event.start.toDate());
               const myEnd = new DayPilot.Date(event.end.toDate());
               const myId = DayPilot.guid();
@@ -93,8 +125,6 @@ export const CalendarCopy = () => {
                 end: myEnd,
                 id: myId,
               });
-              console.log(list);
-
               setEvents({ events: list });
             });
           }
@@ -103,8 +133,6 @@ export const CalendarCopy = () => {
       getCalendars();
     }
   }, [auth.currentUser]);
-
-  console.log(events);
 
   return (
     <>

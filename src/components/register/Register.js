@@ -56,7 +56,7 @@ export const Register = () => {
               first family calendar!
             </p>
 
-            <form className="login-input" onSubmit={register}>
+            <form className="form-section" onSubmit={register}>
               <input
                 type="text"
                 placeholder="Firstname"

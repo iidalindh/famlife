@@ -24,9 +24,9 @@ export const Login = () => {
     getUsers();
   }, []);
 
-  onAuthStateChanged(auth, (currentUser) => {
-    setUser(currentUser);
-  });
+  // onAuthStateChanged(auth, (currentUser) => {
+  //   setUser(currentUser);
+  // });
 
   const navigate = useNavigate();
 
@@ -80,7 +80,7 @@ export const Login = () => {
               Log in to your FamLife-account to get started <br /> with your
               family calendar!
             </p>
-            <form className="login-input">
+            <form className="form-section">
               <input
                 type="email"
                 placeholder="Email Address"

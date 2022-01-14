@@ -8,6 +8,7 @@ import { Login } from "./components/login/Login";
 import { Register } from "./components/register/Register";
 import { CalendarView } from "./components/calendar/Calendar";
 import { CalendarCopy } from "./components/calendar/CalendarCopy";
+import { NewCalendar } from "./components/calendar/NewCalendar";
 import { Dashboard } from "./components/dashboard/Dashboard";
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
             element={<CalendarCopy></CalendarCopy>}
           ></Route>
           <Route path="/dashboard" element={<Dashboard />}></Route>
+          <Route path="/create-calendar" element={<NewCalendar />}></Route>
           <Route path="/register" element={<Register />}></Route>
         </Routes>
       </BrowserRouter>
