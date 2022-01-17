@@ -1,5 +1,6 @@
 import React from "react";
 import { Navbar } from "../navbar/Navbar";
+import { Link } from "react-router-dom";
 import "./landingpage.css";
 
 export const Landingpage = () => {
@@ -14,7 +15,9 @@ export const Landingpage = () => {
             </h1>
           </div>
           <div className="cta-button">
-            <button>Get FamLife Free</button>
+            <Link to="/register">
+              <button data-testid="get-famlife">Get FamLife Free</button>
+            </Link>
           </div>
           <div className="bullet-list">
             <ul>

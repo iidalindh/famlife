@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { Navbar } from "../navbar/Navbar";
-import "../login/login.css";
+import "./calendar.css";
 import { collection, setDoc, doc } from "@firebase/firestore";
 import { auth, db } from "../../firebase-config";
+import { useNavigate } from "react-router-dom";
 
 export const NewCalendar = () => {
   const [calendarTitle, setCalendarTitle] = useState("");
+  const navigate = useNavigate();
 
   const postCalendar = async (e) => {
     e.preventDefault();
@@ -19,7 +21,8 @@ export const NewCalendar = () => {
     await setDoc(doc(calendarCollection, calendarTitle), {
       events: [],
       users: [],
-    }).then(function() {
+    }).then(function () {
+      navigate("/dashboard");
       console.log("Frank food updated");
     });
   };
@@ -28,13 +31,9 @@ export const NewCalendar = () => {
     <>
       <Navbar></Navbar>
       <section className="hero">
-        <div className="hero-info">
-          <h1>Create new calendar to get started</h1>
-          <img src="/images/calendar.png" alt="" />
-        </div>
-        <div className="login-container">
-          <div className="login">
-            <h2>Create new calendar</h2>
+        <div className="newcalendar-container">
+          <div className="create-new">
+            <h1>Create new calendar</h1>
             <p>Create a new calendar and invite users to join.</p>
             <form className="form-section" onSubmit={postCalendar}>
               <input
@@ -49,7 +48,7 @@ export const NewCalendar = () => {
               <input type="email" placeholder="Add user email: " />
               <input type="email" placeholder="Add user email: " />
               <input type="email" placeholder="Add user email: " />
-              <button className="send-btn" type="submit">
+              <button className="create-btn" type="submit">
                 Create new calendar
               </button>
             </form>

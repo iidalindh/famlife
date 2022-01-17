@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { signOut } from "firebase/auth";
 import { auth } from "../../firebase-config";
+import { Link } from "react-router-dom";
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,7 +15,9 @@ export const Navbar = () => {
 
   return (
     <Nav>
-      <Logo src="/images/famlife-logo.png" alt="" />
+      <Link to="/">
+        <Logo src="/images/famlife-logo.png" alt="" />
+      </Link>
       {userLoggedIn !== null ? (
         <>
           <HamburgerLoggedIn onClick={() => setIsOpen(!isOpen)}>
@@ -67,7 +70,7 @@ const Hamburger = styled.div`
   span {
     height: 3px;
     width: 25px;
-    background: white;
+    background: ${() => (currentUrl === "/" ? "white" : "green")};
     margin-bottom: 5px;
     border-radius: 5px;
   }

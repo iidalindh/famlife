@@ -1,5 +1,6 @@
 .hero {
   display: flex;
+  margin: 0;
 }
 
 .hero-info {
@@ -9,7 +10,7 @@
 .login-container {
   background-color: #249980;
   width: 100vw;
-  height: 95vh;
+  height: 94vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -84,15 +85,18 @@
   font-weight: bold;
 }
 
+.link-to-register, .link-to-login {
+  color: black;
+}
+
 @media (min-width: 700px) {
   .hero-info {
     display: flex;
     flex-direction: column;
     align-items: center;
     background-color: #cbe7e0;
-
+    height: 94vh;
     width: 50vw;
-    height: 91vh;
   }
 
   .hero-info img {
@@ -112,7 +116,6 @@
 
   .login-container {
     width: 50vw;
-    height: 91vh;
   }
 
   .hero-info h1 i {

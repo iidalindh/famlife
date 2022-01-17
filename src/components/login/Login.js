@@ -5,7 +5,7 @@ import { auth, db } from "../../firebase-config";
 import { Navbar } from "../navbar/Navbar";
 import "./login.css";
 import { collection, getDocs } from "@firebase/firestore";
-import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
 
 export const Login = () => {
   const [loginEmail, setLoginEmail] = useState("");
@@ -99,7 +99,12 @@ export const Login = () => {
               <button className="send-btn" type="submit" onClick={login}>
                 Log in
               </button>
-              <p>New to FamLife? Create an account here.</p>
+              <p>
+                New to FamLife? Create an account{" "}
+                <a className="link-to-register" href="/register">
+                  here.
+                </a>
+              </p>
             </form>
           </div>
         </div>

@@ -21,6 +21,11 @@ export const Register = () => {
         registerEmail,
         registerPassword
       );
+      const newUser = {
+        email: registerEmail,
+        firstname: registerName,
+        lastname: registerLastname,
+      };
       await createUserDocument(user);
       console.log(user);
 
@@ -92,7 +97,12 @@ export const Register = () => {
               <button className="send-btn" type="submit">
                 Create account
               </button>
-              <p>Already have an FamLife-account? Log in here.</p>
+              <p>
+                Already have an FamLife-account? Log in{" "}
+                <a className="link-to-login" href="/login">
+                  here.
+                </a>
+              </p>
             </form>
           </div>
         </div>

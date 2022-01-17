@@ -4,17 +4,11 @@ import {
   DayPilotCalendar,
   DayPilotNavigator,
 } from "daypilot-pro-react";
-import firebase from "firebase/compat/app";
 import { auth, db } from "../../firebase-config";
 import { Navbar } from "../navbar/Navbar";
-import {
-  collection,
-  getDocs,
-  doc,
-  setDoc,
-  arrayUnion,
-} from "@firebase/firestore";
+import { collection, getDocs, doc } from "@firebase/firestore";
 import { updateDoc } from "firebase/firestore";
+import MediaQuery from "react-responsive";
 
 const styles = {
   wrap: {
@@ -30,19 +24,21 @@ const styles = {
 
 export const CalendarCopy = () => {
   const [events, setEvents] = useState({ events: [] });
-
+  const [eventsToDb, setEventsToDb] = useState([]);
+  const addEvents = [];
   const currentURL = window.location.href;
   const calendarId = currentURL.substring(currentURL.lastIndexOf("/") + 1);
   const [calendarController, setcalendarController] = useState({
     locale: "en-gb",
     viewType: "Week",
-    headerDateFormat: "ddd M/d/yyyy",
+    headerDateFormat: "ddd d/M-yyyy",
     showAllDayEvents: true,
     durationBarVisible: false,
     timeRangeSelectedHandling: "Enabled",
-    onTimeRangeSelected: function(args) {
+    startDate: new DayPilot.Date(),
+    onTimeRangeSelected: function (args) {
       DayPilot.Modal.prompt("Create a new event:", "Event 1").then(
-        async function(modal) {
+        async function (modal) {
           let dp = args.control;
 
           dp.clearSelection();
@@ -57,31 +53,16 @@ export const CalendarCopy = () => {
               text: modal.result,
             })
           );
-          setEvents(dp.events.list);
-          // const myDoc = doc(
-          //   db,
-          //   "users",
-          //   auth.currentUser.uid,
-          //   "calendars",
-          //   calendarId
-          // );
 
-          // await updateDoc(myDoc, {
-          //   events: [events.events],
-          // }).then(function() {
-          //   console.log("Frank created");
-          // });
-
-          //   collection(db, "users", auth.currentUser.uid, "calendars")
-          //     .doc(calendarId)
-          //     .update({
-          //       events: {
-          //         food: "HEJ",
-          //       },
-          //     })
-          //     .then(function() {
-          //       console.log("Frank food updated");
-          //     });
+          const newEvent = {
+            text: modal.result,
+            start: args.start.toDate(),
+            end: args.end.toDate(),
+            id: DayPilot.guid(),
+          };
+          addEvents.push(newEvent);
+          setEventsToDb(addEvents);
+          await addEventsToDb();
         }
       );
     },
@@ -113,7 +94,6 @@ export const CalendarCopy = () => {
         const querySnapshot = await getDocs(usersCollectionRef);
         querySnapshot.forEach((doc) => {
           if (doc.id === calendarId) {
-            console.log(doc.data());
             doc.data().events.forEach((event) => {
               const myTitle = event.text;
               const myStart = new DayPilot.Date(event.start.toDate());
@@ -134,30 +114,105 @@ export const CalendarCopy = () => {
     }
   }, [auth.currentUser]);
 
+  const addEventsToDb = async () => {
+    const calendarCollection = collection(
+      db,
+      "users",
+      auth.currentUser.uid,
+      "calendars"
+    );
+    await updateDoc(doc(calendarCollection, calendarId), {
+      events: eventsToDb,
+      users: [123],
+    }).then(function () {
+      console.log("Added events to db");
+    });
+  };
+
+  const changeWeek = (days) => {
+    let date = calendarController.startDate;
+    let convertDate = date.toDate();
+    convertDate.setDate(convertDate.getDate() + days);
+    const newDate = new DayPilot.Date(convertDate);
+    setcalendarController({
+      startDate: newDate,
+    });
+
+    if (days === 0) {
+      setcalendarController({
+        startDate: new DayPilot.Date(),
+      });
+    }
+  };
+
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  let newCalendar = calendarId.replace("%20", " ");
+
   return (
     <>
       <Navbar></Navbar>
-
-      <div className="calendar-wrapper" style={styles.wrap}>
-        <div className="navigator" style={styles.left}>
-          <DayPilotNavigator
-            selectMode={"week"}
-            showMonths={2}
-            skipMonths={3}
-            onTimeRangeSelected={(e) => {
-              setcalendarController({
-                startDate: e.day,
-              });
-            }}
-          />
-        </div>
-        <div style={styles.main}>
-          <DayPilotCalendar
-            {...calendarController}
-            events={events.events}
-            DayBeginsHour="6"
-            DayEndsHour="6"
-          />
+      <div className="wrapper">
+        <h1 className="calendar-name">{newCalendar}</h1>
+        <div className="calendar-wrapper" style={styles.wrap}>
+          <MediaQuery minDeviceWidth={1224}>
+            <div className="navigator" style={styles.left}>
+              <DayPilotNavigator
+                selectMode={"week"}
+                showMonths={2}
+                skipMonths={3}
+                onTimeRangeSelected={(e) => {
+                  setcalendarController({
+                    startDate: e.day,
+                  });
+                }}
+                data-testid="month-picker"
+              />
+            </div>
+            <div style={styles.main}>
+              <DayPilotCalendar
+                {...calendarController}
+                events={events.events}
+                DayBeginsHour="6"
+                DayEndsHour="6"
+                data-testid="calendar"
+              />
+            </div>
+          </MediaQuery>
+          <MediaQuery maxDeviceWidth={1224}>
+            <div style={styles.main}>
+              <div className="current-month">
+                <h3>{monthNames[calendarController.startDate.getMonth()]}</h3>
+              </div>
+              <div className="change-week">
+                <button onClick={() => changeWeek(-7)}>Previous</button>
+                <button onClick={() => changeWeek(0)}>Today</button>
+                <button onClick={() => changeWeek(7)}>Next</button>
+              </div>
+              <DayPilotCalendar
+                {...calendarController}
+                events={events.events}
+                DayBeginsHour="6"
+                DayEndsHour="6"
+                data-testid="calendar"
+                headerDateFormat="ddd d"
+                hourWidth="45"
+              />
+            </div>
+          </MediaQuery>
         </div>
       </div>
     </>

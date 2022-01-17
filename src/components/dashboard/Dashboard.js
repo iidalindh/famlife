@@ -26,7 +26,7 @@ export const Dashboard = () => {
         <h1>Dashboard</h1>
         <div className="box-container">
           <Link to={`/create-calendar`}>
-            <div className="dashboard-box create-new">
+            <div className="dashboard-box create-new-cal">
               <p>Create new calendar</p>
               <i className="fas fa-plus"></i>
             </div>
