@@ -15,9 +15,9 @@ export const Navbar = () => {
 
   return (
     <Nav>
-      <Link to="/">
+      <a href="/">
         <Logo src="/images/famlife-logo.png" alt="" />
-      </Link>
+      </a>
       {userLoggedIn !== null ? (
         <>
           <HamburgerLoggedIn onClick={() => setIsOpen(!isOpen)}>

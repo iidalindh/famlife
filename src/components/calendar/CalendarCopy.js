@@ -70,6 +70,7 @@ export const CalendarCopy = () => {
           };
           addEvents.push(newEvent);
           await addEventsToDb();
+          args.control.message("Event added: " + modal.result);
         }
       );
     },
@@ -114,6 +115,7 @@ export const CalendarCopy = () => {
           dp.events.update(margs.result);
           console.log(margs.result);
           await updateEventToDb(margs.result);
+          args.control.message("Event changed: " + margs.result.text);
         }
       });
     },
@@ -281,53 +283,55 @@ export const CalendarCopy = () => {
     <>
       <Navbar></Navbar>
       <div className="wrapper">
-        <h1 className="calendar-name">{calendarId}</h1>
-        <div className="calendar-wrapper" style={styles.wrap}>
-          <MediaQuery minDeviceWidth={1224}>
-            <div className="navigator" style={styles.left}>
-              <DayPilotNavigator
-                selectMode={"week"}
-                showMonths={2}
-                skipMonths={3}
-                onTimeRangeSelected={(e) => {
-                  setcalendarController({
-                    startDate: e.day,
-                  });
-                }}
-                data-testid="month-picker"
-              />
-            </div>
-            <div style={styles.main}>
-              <DayPilotCalendar
-                {...calendarController}
-                events={events.events}
-                DayBeginsHour="6"
-                DayEndsHour="6"
-                data-testid="calendar"
-              />
-            </div>
-          </MediaQuery>
-          <MediaQuery maxDeviceWidth={1224}>
-            <div style={styles.main}>
-              <div className="current-month">
-                <h3>{monthNames[calendarController.startDate.getMonth()]}</h3>
+        <div className="calendar-wrapper">
+          <h1 className="calendar-name">{calendarId}</h1>
+          <div style={styles.wrap}>
+            <MediaQuery minDeviceWidth={1224}>
+              <div className="navigator" style={styles.left}>
+                <DayPilotNavigator
+                  selectMode={"week"}
+                  showMonths={2}
+                  skipMonths={3}
+                  onTimeRangeSelected={(e) => {
+                    setcalendarController({
+                      startDate: e.day,
+                    });
+                  }}
+                  data-testid="month-picker"
+                />
               </div>
-              <div className="change-week">
-                <button onClick={() => changeWeek(-7)}>Previous</button>
-                <button onClick={() => changeWeek(0)}>Today</button>
-                <button onClick={() => changeWeek(7)}>Next</button>
+              <div style={styles.main}>
+                <DayPilotCalendar
+                  {...calendarController}
+                  events={events.events}
+                  DayBeginsHour="6"
+                  DayEndsHour="6"
+                  data-testid="calendar"
+                />
               </div>
-              <DayPilotCalendar
-                {...calendarController}
-                events={events.events}
-                DayBeginsHour="6"
-                DayEndsHour="6"
-                data-testid="calendar"
-                headerDateFormat="ddd d"
-                hourWidth="45"
-              />
-            </div>
-          </MediaQuery>
+            </MediaQuery>
+            <MediaQuery maxDeviceWidth={1224}>
+              <div style={styles.main}>
+                <div className="current-month">
+                  <h3>{monthNames[calendarController.startDate.getMonth()]}</h3>
+                </div>
+                <div className="change-week">
+                  <button onClick={() => changeWeek(-7)}>Previous</button>
+                  <button onClick={() => changeWeek(0)}>Today</button>
+                  <button onClick={() => changeWeek(7)}>Next</button>
+                </div>
+                <DayPilotCalendar
+                  {...calendarController}
+                  events={events.events}
+                  DayBeginsHour="6"
+                  DayEndsHour="6"
+                  data-testid="calendar"
+                  headerDateFormat="ddd d"
+                  hourWidth="45"
+                />
+              </div>
+            </MediaQuery>
+          </div>
         </div>
       </div>
     </>
