@@ -1,7 +1,6 @@
 /* body {
   background-color: #9cedd6;
 } */
-
 .calendar-wrapper {
   width: 95%;
   margin: 0 auto;
@@ -72,6 +71,10 @@
   background-color: #8fe580;
 }
 
+.hide-demo {
+  display: none;
+}
+
 @media (max-width: 700px) {
   .create-new {
     width: 90vw;
@@ -85,5 +88,9 @@
 
   .current-month {
     text-align: center;
+  }
+
+  .calendar_default_event_inner {
+    padding-top: 30px;
   }
 }

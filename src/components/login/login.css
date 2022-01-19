@@ -85,9 +85,11 @@
   font-weight: bold;
 }
 
-.link-to-register, .link-to-login {
+.link-to-register,
+.link-to-login {
   color: black;
 }
+
 
 @media (min-width: 700px) {
   .hero-info {

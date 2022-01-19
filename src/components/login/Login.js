@@ -1,52 +1,29 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../../firebase-config";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../firebase-config";
 import { Navbar } from "../navbar/Navbar";
 import "./login.css";
-import { collection, getDocs } from "@firebase/firestore";
-import { Link } from "react-router-dom";
 
 export const Login = () => {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
-  const [user, setUser] = useState({});
-  const [users, setUsers] = useState([]);
-
-  const usersCollectionRef = collection(db, "users");
-
-  useEffect(() => {
-    const getUsers = async () => {
-      const data = await getDocs(usersCollectionRef);
-      setUsers(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-      console.log(data);
-    };
-    getUsers();
-  }, []);
-
-  // onAuthStateChanged(auth, (currentUser) => {
-  //   setUser(currentUser);
-  // });
-
+  const [error, seterror] = useState("");
   const navigate = useNavigate();
 
   const login = async (e) => {
     e.preventDefault();
     try {
-      const user = await signInWithEmailAndPassword(
-        auth,
-        loginEmail,
-        loginPassword
-      );
+      await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
       navigate("/dashboard");
     } catch (error) {
       console.log(error.message);
       switch (error.code) {
         case "auth/user-not-found":
-          alert("Email not found");
+          seterror("Email not found");
           break;
         case "auth/wrong-password":
-          alert("Wrong password, try again.");
+          seterror("Wrong password, try again.");
           break;
       }
     }
@@ -69,18 +46,12 @@ export const Login = () => {
         <div className="login-container">
           <div className="login">
             <h2>Log in</h2>
-            {/* {users.map((userFromDoc) => {
-              return (
-                <div key={userFromDoc.id}>
-                  <p>Email: {userFromDoc.email}</p>
-                </div>
-              );
-            })} */}
+
             <p>
               Log in to your FamLife-account to get started <br /> with your
               family calendar!
             </p>
-            <form className="form-section">
+            <form className="form-section" onSubmit={login}>
               <input
                 type="email"
                 placeholder="Email Address"
@@ -92,13 +63,24 @@ export const Login = () => {
               <input
                 type="password"
                 placeholder="Password"
+                required
                 onChange={(event) => {
                   setLoginPassword(event.target.value);
                 }}
               />
-              <button className="send-btn" type="submit" onClick={login}>
+              {error ? (
+                <p
+                  style={{ color: "red", marginBottom: 2 + "px", marginTop: 0 }}
+                >
+                  {error}
+                </p>
+              ) : (
+                <></>
+              )}
+              <button className="send-btn" type="submit">
                 Log in
               </button>
+
               <p>
                 New to FamLife? Create an account{" "}
                 <a className="link-to-register" href="/register">

@@ -6,7 +6,6 @@ import "./App.css";
 import { Landingpage } from "./components/landingpage/Landingpage";
 import { Login } from "./components/login/Login";
 import { Register } from "./components/register/Register";
-import { CalendarView } from "./components/calendar/Calendar";
 import { CalendarCopy } from "./components/calendar/CalendarCopy";
 import { NewCalendar } from "./components/calendar/NewCalendar";
 import { Dashboard } from "./components/dashboard/Dashboard";
@@ -26,10 +25,6 @@ function App() {
         <Routes>
           <Route path="/" element={<Landingpage />}></Route>
           <Route path="/login" element={<Login />}></Route>
-          <Route
-            path="/calendar"
-            element={<CalendarView></CalendarView>}
-          ></Route>
           <Route
             path="/calendar/:id"
             element={<CalendarCopy></CalendarCopy>}

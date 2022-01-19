@@ -10,6 +10,7 @@ export const Register = () => {
   const [registerLastname, setRegisterLastname] = useState("");
   const [registerName, setRegisterName] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
+  const [error, seterror] = useState("");
   const navigate = useNavigate();
 
   const register = async (e) => {
@@ -21,22 +22,18 @@ export const Register = () => {
         registerEmail,
         registerPassword
       );
-      const newUser = {
-        email: registerEmail,
-        firstname: registerName,
-        lastname: registerLastname,
-      };
-      await createUserDocument(user);
+
+      await createUserDocument(user, registerName, registerLastname);
       console.log(user);
 
       navigate("/dashboard");
     } catch (error) {
       switch (error.code) {
         case "auth/weak-password":
-          alert("Password must at lest be 6 characters");
+          seterror("Password must at lest be 6 characters");
           break;
         case "auth/email-already-in-use":
-          alert("Email is already in use!");
+          seterror("Email is already in use");
           break;
       }
     }
@@ -94,6 +91,15 @@ export const Register = () => {
                   setRegisterPassword(event.target.value);
                 }}
               />
+              {error ? (
+                <p
+                  style={{ color: "red", marginBottom: 2 + "px", marginTop: 0 }}
+                >
+                  {error}
+                </p>
+              ) : (
+                <></>
+              )}
               <button className="send-btn" type="submit">
                 Create account
               </button>

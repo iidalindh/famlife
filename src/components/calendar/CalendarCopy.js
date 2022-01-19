@@ -4,9 +4,9 @@ import {
   DayPilotCalendar,
   DayPilotNavigator,
 } from "daypilot-pro-react";
-import { auth, db } from "../../firebase-config";
+import { auth, db, firestore } from "../../firebase-config";
 import { Navbar } from "../navbar/Navbar";
-import { collection, getDocs, doc } from "@firebase/firestore";
+import { collection, getDocs, doc, arrayUnion } from "@firebase/firestore";
 import { updateDoc } from "firebase/firestore";
 import MediaQuery from "react-responsive";
 
@@ -23,17 +23,23 @@ const styles = {
 };
 
 export const CalendarCopy = () => {
+  let div = document.getElementsByTagName("div");
+  for (let i = 0; i < div.length; i++) {
+    if (div[i].innerHTML == "DEMO") {
+      div[i].className = "hide-demo";
+    }
+  }
   const [events, setEvents] = useState({ events: [] });
-  const [eventsToDb, setEventsToDb] = useState([]);
   const addEvents = [];
   const currentURL = window.location.href;
-  const calendarId = currentURL.substring(currentURL.lastIndexOf("/") + 1);
+  let calendarId = currentURL.substring(currentURL.lastIndexOf("/") + 1);
+  calendarId = calendarId.replace("%20", " ");
   const [calendarController, setcalendarController] = useState({
-    locale: "en-gb",
+    locale: "en-us",
     viewType: "Week",
     headerDateFormat: "ddd d/M-yyyy",
-    showAllDayEvents: true,
     durationBarVisible: false,
+    eventDeleteHandling: "Update",
     timeRangeSelectedHandling: "Enabled",
     startDate: new DayPilot.Date(),
     onTimeRangeSelected: function (args) {
@@ -54,6 +60,8 @@ export const CalendarCopy = () => {
             })
           );
 
+          console.log(dp.events.list);
+
           const newEvent = {
             text: modal.result,
             start: args.start.toDate(),
@@ -61,26 +69,57 @@ export const CalendarCopy = () => {
             id: DayPilot.guid(),
           };
           addEvents.push(newEvent);
-          setEventsToDb(addEvents);
           await addEventsToDb();
         }
       );
     },
-
-    eventDeleteHandling: "Update",
+    onEventMoved: async (args) => {
+      const dp = args.control;
+      dp.message("Moved: " + args.e.text());
+      await updateEventToDb(args.e.data);
+    },
     onEventClick: async (args) => {
-      let dp = args.control;
-      const modal = await DayPilot.Modal.prompt(
-        "Update event text:",
-        args.e.text()
-      );
-      if (!modal.result) {
-        return;
-      }
-      const e = args.e;
-      e.data.text = modal.result;
-      dp.events.update(e);
-      setEvents(dp.events.list);
+      var dp = args.control;
+
+      const form = [
+        {
+          name: "Event title",
+          id: "text",
+          type: "text",
+        },
+        {
+          name: "Start",
+          id: "start",
+          type: "datetime",
+          dateFormat: "MMMM/d/yyyy",
+        },
+        {
+          name: "End",
+          id: "end",
+          type: "datetime",
+          dateFormat: "MMMM/d/yyyy",
+        },
+      ];
+
+      var data = args.e.data;
+
+      var options = {
+        autoFocus: true,
+      };
+
+      DayPilot.Modal.form(form, data, options).then(async function (margs) {
+        console.log("modal", margs);
+
+        if (!margs.canceled) {
+          dp.events.update(margs.result);
+          console.log(margs.result);
+          await updateEventToDb(margs.result);
+        }
+      });
+    },
+    onEventDeleted: function (args) {
+      args.control.message("Event deleted: " + args.e.text());
+      deleteEventsFromDb(args.e.id());
     },
   });
 
@@ -98,7 +137,7 @@ export const CalendarCopy = () => {
               const myTitle = event.text;
               const myStart = new DayPilot.Date(event.start.toDate());
               const myEnd = new DayPilot.Date(event.end.toDate());
-              const myId = DayPilot.guid();
+              const myId = event.id;
               list.push({
                 text: myTitle,
                 start: myStart,
@@ -114,6 +153,35 @@ export const CalendarCopy = () => {
     }
   }, [auth.currentUser]);
 
+  const deleteEventsFromDb = async (eventId) => {
+    const eventsFromDb = [];
+    const calendarCollectionRef = collection(
+      db,
+      "users",
+      auth.currentUser.uid,
+      "calendars"
+    );
+
+    const removeEvent = async () => {
+      const allCalendars = await getDocs(calendarCollectionRef);
+      allCalendars.forEach((document) => {
+        if (document.id === calendarId) {
+          document.data().events.forEach((event) => {
+            eventsFromDb.push(event);
+          });
+
+          const updatedEventList = eventsFromDb.filter(
+            (eventt) => eventt.id !== eventId
+          );
+          updateDoc(doc(calendarCollectionRef, calendarId), {
+            events: updatedEventList,
+          });
+        }
+      });
+    };
+    removeEvent();
+  };
+
   const addEventsToDb = async () => {
     const calendarCollection = collection(
       db,
@@ -121,11 +189,55 @@ export const CalendarCopy = () => {
       auth.currentUser.uid,
       "calendars"
     );
+
     await updateDoc(doc(calendarCollection, calendarId), {
-      events: eventsToDb,
-      users: [123],
-    }).then(function () {
-      console.log("Added events to db");
+      events: arrayUnion(...addEvents),
+    });
+  };
+
+  const updateEventToDb = async (args) => {
+    let newArr = [];
+    const calendarCollection = collection(
+      db,
+      "users",
+      auth.currentUser.uid,
+      "calendars"
+    );
+
+    const data = args;
+
+    const updatedEvent = {
+      text: data.text,
+      start: data.start.toDate(),
+      end: data.end.toDate(),
+      id: data.id,
+    };
+
+    const eventsFromDb = [];
+    const allCalendars = await getDocs(calendarCollection);
+    allCalendars.forEach((document) => {
+      if (document.id === calendarId) {
+        document.data().events.forEach((event) => {
+          eventsFromDb.push(event);
+        });
+      }
+    });
+
+    newArr = eventsFromDb.map((obj) => {
+      if (obj.id === updatedEvent.id) {
+        return {
+          text: updatedEvent.text,
+          start: updatedEvent.start,
+          end: updatedEvent.end,
+          id: updatedEvent.id,
+        };
+      }
+
+      return obj;
+    });
+
+    await updateDoc(doc(calendarCollection, calendarId), {
+      events: newArr,
     });
   };
 
@@ -160,13 +272,16 @@ export const CalendarCopy = () => {
     "December",
   ];
 
-  let newCalendar = calendarId.replace("%20", " ");
+  const onClick = (event) => {
+    console.log(event.srcElement);
+  };
+  window.addEventListener("click", onClick);
 
   return (
     <>
       <Navbar></Navbar>
       <div className="wrapper">
-        <h1 className="calendar-name">{newCalendar}</h1>
+        <h1 className="calendar-name">{calendarId}</h1>
         <div className="calendar-wrapper" style={styles.wrap}>
           <MediaQuery minDeviceWidth={1224}>
             <div className="navigator" style={styles.left}>
